@@ -1,0 +1,62 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+*.aar
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+build/
+.gradle/
+captures/
+.externalNativeBuild/
+.cxx/
+.idea/caches/
+.idea/libraries/
+.idea/gradle.xml
+.idea/modules.xml
+.idea/workspace.xml
+local.properties
+/out/
+/data/
+
+# Local configuration files (SDK, NDK, etc.)
+# In most cases, you don't want to commit these files.
+# They should be managed by your build system.
+# See https://developer.android.com/studio/build/gradle-tips#prop_files
+# You may need to uncomment some lines, e.g. if you are using an NDK.
+# local.properties
+
+# Gradle
+
+# Android Studio
+.idea/
+.idea/misc.xml
+.idea/vcs.xml
+.idea/compiler.xml
+.idea/encodings.xml
+.idea/jarRepositories.xml
+.idea/json-plugin.xml
+.idea/kotlinc.xml
+.idea/markdown-navigator.xml
+.idea/shelf/
+.idea/templateLanguages.xml
+.idea/copyright/
+.idea/dictionaries/
+.idea/codeStyles/
+.idea/runConfigurations/
+.idea/scopes/
+.idea/sonarlint/
+
+# User-specific / local state
+.DS_Store
+Thumbs.db
+
+# Android Studio specific files
+*.iml
+.navigation/

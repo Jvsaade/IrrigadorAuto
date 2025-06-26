@@ -1,0 +1,14 @@
+package com.example.kotlinviewmodel.baseDados
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import kotlinx.coroutines.flow.Flow
+
+@Entity
+data class Configuration(
+    @PrimaryKey(autoGenerate = true) val id: Int=0,
+    @ColumnInfo(name = "Nome do alarme") val nomeAlarme: String,
+    @ColumnInfo(name = "Ativação") val ativo: Boolean,
+    @ColumnInfo(name = "Dias da Semana") val diasSemana: String
+)
