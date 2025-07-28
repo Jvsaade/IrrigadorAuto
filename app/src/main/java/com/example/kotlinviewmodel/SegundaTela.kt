@@ -21,16 +21,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController) {
+fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController, alarmId: String?) { // Aceita alarmId como String
     val dias = listOf("Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb")
+
+    val currentAlarmId = rememberUpdatedState(alarmId)
+
+    LaunchedEffect(currentAlarmId.value) {
+        currentAlarmId.value?.let { idString ->
+            if (idString != "new") { // Verifica se não é "new"
+                idString.toIntOrNull()?.let { id -> // Tenta converter para Int
+                    viewModel.loadAlarmForEditing(id)
+                } ?: run {
+                    // Lidar com um ID inválido que não seja "new"
+                    viewModel.resetConfig()
+                }
+            } else {
+                viewModel.resetConfig()
+            }
+        } ?: run {
+            viewModel.resetConfig()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background), // Garante que o fundo da tela seja do tema
+            .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -41,23 +62,15 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController) {
                 onValueChange = { newText -> viewModel.updateNome(newText) },
                 label = { Text("Nome do Alarme") },
                 textStyle = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface // Usa onSurface do tema para o texto digitado
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                // Se o fundo do OutlinedTextField ainda for branco no modo noturno,
-                // e você quiser que ele seja escuro como o background, pode tentar:
-                /* colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                ) */
             )
 
             Spacer(modifier = Modifier.width(10.dp))
 
             Switch(
                 checked = viewModel.config.value.ativo,
-                onCheckedChange = {viewModel.toggleAtivo()}
+                onCheckedChange = { viewModel.toggleAtivo() }
             )
         }
 
@@ -68,10 +81,9 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController) {
                         checked = viewModel.config.value.diasSemana[index].toString() == "1",
                         onCheckedChange = { viewModel.updateDiaSemana(index) }
                     )
-                    // AQUI: Define a cor do texto para os dias da semana
                     Text(
                         text = dia,
-                        color = MaterialTheme.colorScheme.onBackground // Use onBackground ou onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -86,20 +98,28 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController) {
             Button(
                 onClick = {
                     viewModel.salvarAlarme()
-                    navController.navigate("Tela1")
+                    navController.navigate("Tela1") {
+                        popUpTo("Tela1") {
+                            inclusive = true
+                        }
+                    }
                 }
             ) {
-                Text(text="Adicionar alarme")
+                Text(text = "Salvar alarme")
             }
 
             Spacer(modifier = Modifier.width(10.dp))
 
             Button(
                 onClick = {
-                    navController.navigate("Tela1")
+                    navController.navigate("Tela1") {
+                        popUpTo("Tela1") {
+                            inclusive = true
+                        }
+                    }
                 }
             ) {
-                Text(text="Cancelar")
+                Text(text = "Cancelar")
             }
         }
     }

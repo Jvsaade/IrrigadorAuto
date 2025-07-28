@@ -8,9 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.kotlinviewmodel.baseDados.BaseDados
 import com.example.kotlinviewmodel.baseDados.Repository
 import com.example.kotlinviewmodel.ui.theme.KotlinViewModelTheme
@@ -41,8 +43,12 @@ fun TelaPrincipal(viewModel: CounterAppViewModel) {
         composable("Tela1") {
             FirstScreen(viewModel = viewModel, navController = navController)
         }
-        composable("Tela2") {
-            SecondScreen(viewModel = viewModel, navController = navController)
+        composable(
+            "Tela2/{alarmId}", // Define a rota com um argumento
+            arguments = listOf(navArgument("alarmId") { type = NavType.StringType; defaultValue = "new" }) // Altera para StringType e default "new"
+        ) { backStackEntry ->
+            val alarmId = backStackEntry.arguments?.getString("alarmId")
+            SecondScreen(viewModel = viewModel, navController = navController, alarmId = alarmId)
         }
     }
 }

@@ -37,7 +37,8 @@ import androidx.navigation.NavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete // Importar ícone de lixeira
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -55,24 +56,20 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
     val allAlarms by viewModel.allAlarms.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
 
-    // 1. Create and remember a SnackbarHostState
     val snackbarHostState = remember { SnackbarHostState() }
     val statusMessage by viewModel.statusMessage
 
-    // 3. Effect to show snackbar when the message changes
     LaunchedEffect(statusMessage) {
         statusMessage?.let { message ->
             snackbarHostState.showSnackbar(
                 message = message,
                 duration = SnackbarDuration.Short
             )
-            // Reset the message in the ViewModel after it's shown
             viewModel.onStatusMessageShown()
         }
     }
 
     Scaffold(
-        // 2. Assign the SnackbarHost to the Scaffold
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             FlowRow(
@@ -83,7 +80,9 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalArrangement = Arrangement.Center
             ) {
-                Button(onClick = { navController.navigate("Tela2") }) {
+                Button(onClick = {
+                    navController.navigate("Tela2/new")
+                }) {
                     Text(text = "Adicionar alarme")
                 }
                 Button(onClick = { viewModel.excluirTodosAlarmes() }) {
@@ -109,7 +108,7 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
 
                 Button(
                     onClick = {
-                        viewModel.verificarBateria() // This button now shows the message
+                        viewModel.verificarBateria()
                     }
                 ) {
                     Text(text = "Verificar bateria")
@@ -129,7 +128,8 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
                 AlarmCard(
                     viewModel = viewModel,
                     alarm = alarm,
-                    onDeleteAlarm = { viewModel.excluirAlarme(alarm) }
+                    onDeleteAlarm = { viewModel.excluirAlarme(alarm) },
+                    onEditAlarm = { id -> navController.navigate("Tela2/$id") }
                 )
             }
         }
@@ -145,7 +145,12 @@ fun formatDays(daysString: String): String {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun AlarmCard(viewModel: CounterAppViewModel, alarm: Configuration, onDeleteAlarm: () -> Unit) { // Adiciona o parâmetro onDeleteAlarm
+fun AlarmCard(
+    viewModel: CounterAppViewModel,
+    alarm: Configuration,
+    onDeleteAlarm: () -> Unit,
+    onEditAlarm: (Int) -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,7 +173,7 @@ fun AlarmCard(viewModel: CounterAppViewModel, alarm: Configuration, onDeleteAlar
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.weight(1f) // Faz o texto ocupar o espaço restante
+                    modifier = Modifier.weight(1f)
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -178,8 +183,9 @@ fun AlarmCard(viewModel: CounterAppViewModel, alarm: Configuration, onDeleteAlar
                         tint = if (viewModel.alarmeSalvo()) Color.Green else Color.Red,
                         modifier = Modifier.size(24.dp)
                     )
-                    Spacer(modifier = Modifier.size(8.dp)) // Espaço entre o ícone de status e o botão de exclusão
-                    Button(onClick = onDeleteAlarm) { // Botão de exclusão
+                    Spacer(modifier = Modifier.size(8.dp))
+                    // Botão de exclusão (mantido na parte superior)
+                    Button(onClick = onDeleteAlarm) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Excluir alarme",
@@ -191,7 +197,7 @@ fun AlarmCard(viewModel: CounterAppViewModel, alarm: Configuration, onDeleteAlar
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Linha de status
+            // Linha de status e botão de configuração
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -216,13 +222,27 @@ fun AlarmCard(viewModel: CounterAppViewModel, alarm: Configuration, onDeleteAlar
                     )
                     Switch(
                         checked = alarm.ativo,
-                        onCheckedChange = { viewModel.toggleAtivo() },
+                        onCheckedChange = { viewModel.toggleAtivo() }, // Isso toggles o estado do alarme atualmente no ViewModel.
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
                             checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
                             uncheckedThumbColor = MaterialTheme.colorScheme.outline,
                             uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
+                    )
+                }
+            }
+            // Mover o botão de configuração para baixo do switch
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End, // Alinha o botão à direita
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = { onEditAlarm(alarm.id) }) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Configurar alarme",
+                        tint = Color.White
                     )
                 }
             }

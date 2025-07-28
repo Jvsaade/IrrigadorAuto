@@ -101,6 +101,8 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun alarmeSalvo():Boolean{
+        // This function seems to always return true. You might want to implement actual logic here
+        // to check if the alarm is truly saved, e.g., by comparing with a list of saved alarms.
         return true
     }
 
@@ -112,5 +114,24 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
                 println("Erro para deletar")
             }
         }
+    }
+
+    // New function to load an alarm for editing
+    fun loadAlarmForEditing(alarmId: Int) {
+        viewModelScope.launch {
+            val alarm = repository.getItemById(alarmId)
+            alarm?.let {
+                _config.value = it
+            }
+        }
+    }
+
+    // New function to reset config for a new alarm
+    fun resetConfig() {
+        _config.value = Configuration(
+            nomeAlarme = "",
+            ativo = false,
+            diasSemana = "0000000"
+        )
     }
 }
