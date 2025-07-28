@@ -39,8 +39,13 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete // Importar ícone de lixeira
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.example.kotlinviewmodel.baseDados.Configuration
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -50,7 +55,25 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
     val allAlarms by viewModel.allAlarms.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
 
+    // 1. Create and remember a SnackbarHostState
+    val snackbarHostState = remember { SnackbarHostState() }
+    val statusMessage by viewModel.statusMessage
+
+    // 3. Effect to show snackbar when the message changes
+    LaunchedEffect(statusMessage) {
+        statusMessage?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+            // Reset the message in the ViewModel after it's shown
+            viewModel.onStatusMessageShown()
+        }
+    }
+
     Scaffold(
+        // 2. Assign the SnackbarHost to the Scaffold
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             FlowRow(
                 modifier = Modifier
@@ -81,8 +104,17 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
                         viewModel.atualizarTimers()
                     }
                 ) {
-                    Text(text = "Atualizar timers no microcontrolador")
+                    Text(text = "Atualizar microcontrolador")
                 }
+
+                Button(
+                    onClick = {
+                        viewModel.verificarBateria() // This button now shows the message
+                    }
+                ) {
+                    Text(text = "Verificar bateria")
+                }
+
             }
         }
     ) { paddingValues ->
@@ -94,11 +126,10 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             allAlarms.forEach { alarm ->
-                // Passa o alarme e a função onDeleteAlarm para o AlarmCard
                 AlarmCard(
                     viewModel = viewModel,
                     alarm = alarm,
-                    onDeleteAlarm = { viewModel.excluirAlarme(alarm) } // Chama a função excluirAlarme do ViewModel
+                    onDeleteAlarm = { viewModel.excluirAlarme(alarm) }
                 )
             }
         }

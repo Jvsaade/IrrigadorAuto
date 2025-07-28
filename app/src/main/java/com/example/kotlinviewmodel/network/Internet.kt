@@ -19,6 +19,8 @@ interface conection {
     suspend fun piscaLed(
         @Query("tempo") tempo:Int
     ): Response<String>
+    @GET("battery")
+    suspend fun verificarBateria(): Response<String>
 }
 
 object IntApi{

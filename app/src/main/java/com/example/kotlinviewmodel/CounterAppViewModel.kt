@@ -1,12 +1,10 @@
 package com.example.kotlinviewmodel
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kotlinviewmodel.baseDados.Configuration
-import com.example.kotlinviewmodel.baseDados.ConfigurationDao
 import com.example.kotlinviewmodel.baseDados.Repository
 import com.example.kotlinviewmodel.network.IntApi
 import kotlinx.coroutines.flow.Flow
@@ -29,35 +27,55 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
     val allAlarms: Flow<List<Configuration>> = repository.allItems
 
+    // 1. State for the temporary message
+    private val _statusMessage = mutableStateOf<String?>(null)
+    val statusMessage: MutableState<String?> = _statusMessage
+
     fun updateDiaSemana(dia: Int){
         val dias = _config.value.diasSemana.toCharArray()
-        // Inverte o valor na posição indicada
         dias[dia] = if (dias[dia] == '1') '0' else '1'
-        _config.value = _config.value.copy(diasSemana = String(dias)) // Cria uma nova string com a modificação
+        _config.value = _config.value.copy(diasSemana = String(dias))
     }
 
     fun updateNome(str: String){
         _config.value = _config.value.copy(nomeAlarme = str)
     }
 
-    //    init {
-//        loadInitialCount()
-//    }
-    // Essa função vai fazer uma requisição HTTP para o microcontrolador
-    // para enviar informações sobre os timers.
     fun atualizarTimers(){
-
         verificarTimers()
     }
 
-    // Essa função torna o alarme ativo
+    // 2. Implement the network call logic
+    fun verificarBateria() {
+        viewModelScope.launch {
+            try {
+                val response = IntApi.intService.verificarBateria()
+                if (response.isSuccessful && response.body() != null) {
+                    // Success: Update state with the server message
+                    _statusMessage.value = response.body()
+                } else {
+                    // Error: Handle unsuccessful server responses
+                    _statusMessage.value = "Erro: Resposta não recebida do servidor."
+                }
+            } catch (e: IOException) {
+                // Error: Handle network connection issues
+                _statusMessage.value = "Erro de conexão com o dispositivo."
+            } catch (e: Exception) {
+                // Error: Handle any other unexpected errors
+                _statusMessage.value = "Ocorreu um erro inesperado."
+            }
+        }
+    }
+
+    // 3. Function to reset the message state after it's shown
+    fun onStatusMessageShown() {
+        _statusMessage.value = null
+    }
+
     fun toggleAtivo(){
         _config.value = _config.value.copy(ativo = !_config.value.ativo)
     }
 
-
-    // Essa função verifica os timers existentes e retorna se todos foram
-    // configurados corretamente
     fun verificarTimers(){
 
     }
@@ -72,7 +90,6 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // Nova função para excluir um alarme específico
     fun excluirAlarme(alarm: Configuration) {
         viewModelScope.launch {
             try {
@@ -96,6 +113,4 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
             }
         }
     }
-
-
 }
