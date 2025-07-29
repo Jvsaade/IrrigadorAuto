@@ -8,6 +8,7 @@ import com.example.kotlinviewmodel.baseDados.Configuration
 import com.example.kotlinviewmodel.baseDados.Repository
 import com.example.kotlinviewmodel.network.IntApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -27,7 +28,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
     val allAlarms: Flow<List<Configuration>> = repository.allItems
 
-    // 1. State for the temporary message
+    // State for the temporary message
     private val _statusMessage = mutableStateOf<String?>(null)
     val statusMessage: MutableState<String?> = _statusMessage
 
@@ -45,29 +46,23 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         verificarTimers()
     }
 
-    // 2. Implement the network call logic
     fun verificarBateria() {
         viewModelScope.launch {
             try {
                 val response = IntApi.intService.verificarBateria()
                 if (response.isSuccessful && response.body() != null) {
-                    // Success: Update state with the server message
                     _statusMessage.value = response.body()
                 } else {
-                    // Error: Handle unsuccessful server responses
                     _statusMessage.value = "Erro: Resposta não recebida do servidor."
                 }
             } catch (e: IOException) {
-                // Error: Handle network connection issues
                 _statusMessage.value = "Erro de conexão com o dispositivo."
             } catch (e: Exception) {
-                // Error: Handle any other unexpected errors
                 _statusMessage.value = "Ocorreu um erro inesperado."
             }
         }
     }
 
-    // 3. Function to reset the message state after it's shown
     fun onStatusMessageShown() {
         _statusMessage.value = null
     }
@@ -77,15 +72,45 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun verificarTimers(){
+        viewModelScope.launch {
+            try {
+                val activeAlarms = allAlarms.first().filter { it.ativo } // Get current active alarms
+                if (activeAlarms.isEmpty()) {
+                    _statusMessage.value = "Nenhum alarme ativo para enviar."
+                    return@launch
+                }
 
+                activeAlarms.forEach { alarm ->
+                    try {
+                        val response = IntApi.intService.setAlarm(
+                            nomeAlarme = alarm.nomeAlarme,
+                            ativo = alarm.ativo,
+                            diasSemana = alarm.diasSemana
+                        )
+                        if (response.isSuccessful) {
+                            _statusMessage.value = "Alarme '${alarm.nomeAlarme}' enviado com sucesso."
+                        } else {
+                            _statusMessage.value = "Falha ao enviar alarme '${alarm.nomeAlarme}': ${response.message()}"
+                        }
+                    } catch (e: IOException) {
+                        _statusMessage.value = "Erro de conexão ao enviar alarme '${alarm.nomeAlarme}': ${e.message}"
+                    } catch (e: Exception) {
+                        _statusMessage.value = "Erro inesperado ao enviar alarme '${alarm.nomeAlarme}': ${e.message}"
+                    }
+                }
+            } catch (e: Exception) {
+                _statusMessage.value = "Erro ao carregar alarmes: ${e.message}"
+            }
+        }
     }
 
     fun salvarAlarme(){
         viewModelScope.launch {
             try {
                 repository.insert(config.value)
+                _statusMessage.value = "Alarme salvo com sucesso!"
             } catch (e: IOException){
-                println("Erro de Salvamento")
+                _statusMessage.value = "Erro de Salvamento: ${e.message}"
             }
         }
     }
@@ -94,8 +119,9 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.delete(alarm)
+                _statusMessage.value = "Alarme '${alarm.nomeAlarme}' excluído com sucesso."
             } catch (e: IOException) {
-                println("Erro ao deletar alarme: ${e.message}")
+                _statusMessage.value = "Erro ao deletar alarme: ${e.message}"
             }
         }
     }
@@ -110,13 +136,13 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch {
             try{
                 repository.deleteAll()
+                _statusMessage.value = "Todos os alarmes foram excluídos."
             }catch (e:IOException){
-                println("Erro para deletar")
+                _statusMessage.value = "Erro para deletar todos os alarmes: ${e.message}"
             }
         }
     }
 
-    // New function to load an alarm for editing
     fun loadAlarmForEditing(alarmId: Int) {
         viewModelScope.launch {
             val alarm = repository.getItemById(alarmId)
@@ -126,7 +152,6 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // New function to reset config for a new alarm
     fun resetConfig() {
         _config.value = Configuration(
             nomeAlarme = "",
