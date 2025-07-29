@@ -74,7 +74,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     fun verificarTimers(){
         viewModelScope.launch {
             try {
-                val activeAlarms = allAlarms.first().filter { it.ativo } // Get current active alarms
+                val activeAlarms = allAlarms.first().filter { it.ativo } // Obter alarmes ativos
                 if (activeAlarms.isEmpty()) {
                     _statusMessage.value = "Nenhum alarme ativo para enviar."
                     return@launch
@@ -82,20 +82,17 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
                 activeAlarms.forEach { alarm ->
                     try {
-                        val response = IntApi.intService.setAlarm(
-                            nomeAlarme = alarm.nomeAlarme,
-                            ativo = alarm.ativo,
-                            diasSemana = alarm.diasSemana
-                        )
+                        // Usar o novo metodo setAlarmJson para enviar o objeto Configuration
+                        val response = IntApi.intService.setAlarmJson(alarm)
                         if (response.isSuccessful) {
-                            _statusMessage.value = "Alarme '${alarm.nomeAlarme}' enviado com sucesso."
+                            _statusMessage.value = "Alarme '${alarm.nomeAlarme}' enviado com sucesso (JSON)."
                         } else {
-                            _statusMessage.value = "Falha ao enviar alarme '${alarm.nomeAlarme}': ${response.message()}"
+                            _statusMessage.value = "Falha ao enviar alarme '${alarm.nomeAlarme}' (JSON): ${response.message()}"
                         }
                     } catch (e: IOException) {
-                        _statusMessage.value = "Erro de conexão ao enviar alarme '${alarm.nomeAlarme}': ${e.message}"
+                        _statusMessage.value = "Erro de conexão ao enviar alarme '${alarm.nomeAlarme}' (JSON): ${e.message}"
                     } catch (e: Exception) {
-                        _statusMessage.value = "Erro inesperado ao enviar alarme '${alarm.nomeAlarme}': ${e.message}"
+                        _statusMessage.value = "Erro inesperado ao enviar alarme '${alarm.nomeAlarme}' (JSON): ${e.message}"
                     }
                 }
             } catch (e: Exception) {
@@ -127,8 +124,8 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun alarmeSalvo():Boolean{
-        // This function seems to always return true. You might want to implement actual logic here
-        // to check if the alarm is truly saved, e.g., by comparing with a list of saved alarms.
+        // Esta função parece sempre retornar true. Você pode querer implementar uma lógica real aqui
+        // para verificar se o alarme está realmente salvo, por exemplo, comparando com uma lista de alarmes salvos.
         return true
     }
 
