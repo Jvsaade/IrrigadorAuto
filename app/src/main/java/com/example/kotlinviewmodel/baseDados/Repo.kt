@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 class Repository(private val Configuration_dao : ConfigurationDao){
     val allItems : Flow<List<Configuration>> = Configuration_dao.getAll()
 
-    suspend fun insert(num: Configuration) {
+    suspend fun upsert(num: Configuration) {
         Configuration_dao.upsert(num)
     }
 

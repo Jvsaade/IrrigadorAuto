@@ -77,6 +77,24 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         _statusMessage.value = null
     }
 
+    fun toggleAtivo(alarmId: Int){
+        viewModelScope.launch {
+            try {
+                val alarm = repository.getItemById(alarmId)
+                alarm?.let {
+                    // Atualiza o estado 'ativo' e salva no banco de dados
+                    val updatedAlarm = it.copy(ativo = !it.ativo)
+                    repository.upsert(updatedAlarm)
+                    _statusMessage.value = "Estado do alarme atualizado"
+                } ?: run {
+                    _statusMessage.value = "Alarme não encontrado"
+                }
+            }catch (e: Exception){
+                _statusMessage.value = "Erro ao atualizar alarme: ${e.message}"
+            }
+        }
+    }
+
     fun toggleAtivo(){
         _config.value = _config.value.copy(ativo = !_config.value.ativo)
     }
@@ -115,7 +133,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     fun salvarAlarme(){
         viewModelScope.launch {
             try {
-                repository.insert(config.value)
+                repository.upsert(config.value)
                 _statusMessage.value = "Alarme salvo com sucesso!"
             } catch (e: IOException){
                 _statusMessage.value = "Erro de Salvamento: ${e.message}"
@@ -132,12 +150,6 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
                 _statusMessage.value = "Erro ao deletar alarme: ${e.message}"
             }
         }
-    }
-
-    fun alarmeSalvo():Boolean{
-        // Esta função parece sempre retornar true. Você pode querer implementar uma lógica real aqui
-        // para verificar se o alarme está realmente salvo, por exemplo, comparando com uma lista de alarmes salvos.
-        return true
     }
 
     fun excluirTodosAlarmes(){
