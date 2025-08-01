@@ -178,9 +178,9 @@ fun AlarmCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = if (viewModel.alarmeSalvo()) Icons.Default.Check else Icons.Default.Close,
-                        contentDescription = if (viewModel.alarmeSalvo()) "Alarme salvo" else "Alarme não salvo",
-                        tint = if (viewModel.alarmeSalvo()) Color.Green else Color.Red,
+                        imageVector = if (viewModel.alarmeSalvo(alarm.id)) Icons.Default.Check else Icons.Default.Close,
+                        contentDescription = if (viewModel.alarmeSalvo(alarm.id)) "Alarme salvo" else "Alarme não salvo",
+                        tint = if (viewModel.alarmeSalvo(alarm.id)) Color.Green else Color.Red,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))

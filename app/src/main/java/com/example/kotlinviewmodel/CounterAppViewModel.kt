@@ -14,8 +14,8 @@ import java.io.IOException
 
 class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
-    private val _texto = mutableStateOf("")
-    val texto: MutableState<String> = _texto
+    private val _alarmeEnviado = mutableStateOf<Map<Int, Boolean>>(emptyMap())
+    val alarmeEnviado: MutableState<Map<Int, Boolean>> = _alarmeEnviado
 
     private val _config = mutableStateOf(
         Configuration(
@@ -44,6 +44,16 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
     fun atualizarTimers(){
         verificarTimers()
+    }
+
+    fun marcarAlarmeComoEnviado(alarmId: Int) {
+        _alarmeEnviado.value = _alarmeEnviado.value.toMutableMap().apply {
+            this[alarmId] = true
+        }
+    }
+
+    fun alarmeSalvo(alarmId: Int): Boolean {
+        return _alarmeEnviado.value[alarmId] ?: false
     }
 
     fun verificarBateria() {
@@ -86,6 +96,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
                         val response = IntApi.intService.setAlarmJson(alarm)
                         if (response.isSuccessful) {
                             _statusMessage.value = "Alarme '${alarm.nomeAlarme}' enviado com sucesso (JSON)."
+                            marcarAlarmeComoEnviado(alarm.id) // marca este alarme como enviado
                         } else {
                             _statusMessage.value = "Falha ao enviar alarme '${alarm.nomeAlarme}' (JSON): ${response.message()}"
                         }
