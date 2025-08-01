@@ -235,9 +235,18 @@ fun AlarmCard(
             // Mover o botão de configuração para baixo do switch
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End, // Alinha o botão à direita
+                horizontalArrangement = Arrangement.SpaceBetween, // Alinha o botão à direita
                 verticalAlignment = Alignment.CenterVertically
             ) {
+               Text(
+                   text = alarm.horaAlarme.toString().padStart(2, '0') + ":" + alarm.minutoAlarme.toString().padStart(2, '0'),
+                   style = MaterialTheme.typography.titleLarge.copy(
+                       fontWeight = FontWeight.Bold,
+                       color = MaterialTheme.colorScheme.primary
+                   ),
+                   modifier = Modifier.weight(1f)
+               )
+
                 Button(onClick = { onEditAlarm(alarm.id) }) {
                     Icon(
                         imageVector = Icons.Default.Settings,

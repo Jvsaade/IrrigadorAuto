@@ -21,6 +21,8 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         Configuration(
             nomeAlarme = "",
             ativo = false,
+            horaAlarme = 23,
+            minutoAlarme = 59,
             diasSemana = "0000000"
         )
     )
@@ -42,8 +44,8 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         _config.value = _config.value.copy(nomeAlarme = str)
     }
 
-    fun atualizarTimers(){
-        verificarTimers()
+    fun updateHoraMinuto(hour: Int, minute: Int){
+        _config.value = _config.value.copy(horaAlarme = hour, minutoAlarme = minute)
     }
 
     fun marcarAlarmeComoEnviado(alarmId: Int) {
@@ -99,19 +101,21 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         _config.value = _config.value.copy(ativo = !_config.value.ativo)
     }
 
-    fun verificarTimers(){
+    fun atualizarTimers(){
         viewModelScope.launch {
             try {
-                val activeAlarms = allAlarms.first().filter { it.ativo } // Obter alarmes ativos
+                val activeAlarms = allAlarms.first().filter {
+                    alarmeSalvo(it.id).not()
+                } // Obter alarmes ativos
                 if (activeAlarms.isEmpty()) {
-                    _statusMessage.value = "Nenhum alarme ativo para enviar."
+                    _statusMessage.value = "Nenhum alarme para enviar."
                     return@launch
                 }
 
                 activeAlarms.forEach { alarm ->
                     try {
                         // Usar o novo metodo setAlarmJson para enviar o objeto Configuration
-                        val response = IntApi.intService.setAlarmJson(alarm)
+                        val response = IntApi.intService.setAlarm(alarm)
                         if (response.isSuccessful) {
                             _statusMessage.value = "Alarme '${alarm.nomeAlarme}' enviado com sucesso (JSON)."
                             marcarAlarmeComoEnviado(alarm.id) // marca este alarme como enviado
@@ -129,6 +133,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
             }
         }
     }
+
 
     fun salvarAlarme(){
         viewModelScope.launch {
@@ -176,6 +181,8 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         _config.value = Configuration(
             nomeAlarme = "",
             ativo = false,
+            horaAlarme = 23,
+            minutoAlarme = 59,
             diasSemana = "0000000"
         )
     }

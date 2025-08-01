@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,13 +27,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
+import java.util.Calendar
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController, alarmId: String?) { // Aceita alarmId como String
     val dias = listOf("Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb")
 
     val currentAlarmId = rememberUpdatedState(alarmId)
+
+    val timePickerState = rememberTimePickerState(
+        initialHour = viewModel.config.value.horaAlarme,
+        initialMinute = viewModel.config.value.minutoAlarme,
+        is24Hour = true,
+    )
 
     LaunchedEffect(currentAlarmId.value) {
         currentAlarmId.value?.let { idString ->
@@ -74,6 +85,12 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController, a
             )
         }
 
+        Spacer(modifier = Modifier.height(20.dp))
+
+        TimeInput(
+            state = timePickerState
+        )
+
         FlowRow {
             dias.forEachIndexed { index, dia ->
                 Column {
@@ -97,6 +114,7 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController, a
         FlowRow {
             Button(
                 onClick = {
+                    viewModel.updateHoraMinuto(timePickerState.hour,timePickerState.minute)
                     viewModel.salvarAlarme()
                     navController.navigate("Tela1") {
                         popUpTo("Tela1") {

@@ -28,10 +28,13 @@ interface conection {
     @GET("battery")
     suspend fun verificarBateria(): Response<String>
 
-    @POST("setAlarmJson") // Novo endpoint para enviar JSON (mude o nome se preferir)
-    suspend fun setAlarmJson(
+    @POST("setAlarm") // Novo endpoint para enviar JSON (mude o nome se preferir)
+    suspend fun setAlarm(
         @Body alarm: Configuration // Envia o objeto Configuration como corpo da requisição JSON
     ): Response<String>
+
+    @POST("deleteAll") // Deleta todos os alarmes
+    suspend fun deleteAll(): Response<String>
 }
 
 object IntApi{
