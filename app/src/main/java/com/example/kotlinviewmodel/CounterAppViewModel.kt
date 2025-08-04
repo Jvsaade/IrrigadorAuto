@@ -153,12 +153,32 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun excluirAlarme(alarm: Configuration) {
-        viewModelScope.launch {
-            try {
-                repository.delete(alarm)
-                _statusMessage.value = "Alarme '${alarm.nomeAlarme}' excluído com sucesso."
-            } catch (e: IOException) {
-                _statusMessage.value = "Erro ao deletar alarme: ${e.message}"
+        // Se o alarme ainda não tiver sido enviado, deleta na base de dados
+        if (!alarmeSalvo(alarm.id)){
+            viewModelScope.launch {
+                try {
+                    repository.delete(alarm)
+                } catch (e: IOException){
+                    _statusMessage.value = "Erro ao deletar alarme: ${e.message}"
+                }
+            }
+        }
+        // Se o alarme tiver sido enviado
+        else {
+            viewModelScope.launch {
+                try {
+                    val response = IntApi.intService.deleteAlarm(alarm.nomeAlarme)
+                    if (response.isSuccessful) {
+                        repository.delete(alarm)
+                        _statusMessage.value = "Alarme '${alarm.nomeAlarme}' excluído com sucesso."
+                    } else {
+                        _statusMessage.value = "Falha ao excluir alarme '${alarm.nomeAlarme}': ${response.message()}"
+                    }
+                } catch (e: IOException) {
+                    _statusMessage.value = "Erro ao deletar alarme: ${e.message}"
+                } catch (e: Exception){
+                    _statusMessage.value = "Erro inesperado ao deletar alarme: ${e.message}"
+                }
             }
         }
     }
@@ -166,7 +186,13 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     fun excluirTodosAlarmes(){
         viewModelScope.launch {
             try{
-                repository.deleteAll()
+                val response = IntApi.intService.deleteAll()
+                if (response.isSuccessful) {
+                    repository.deleteAll()
+                }
+                else{
+                    _statusMessage.value = "Falha ao excluir todos os alarmes: ${response.message()}"
+                }
                 _statusMessage.value = "Todos os alarmes foram excluídos."
             }catch (e:IOException){
                 _statusMessage.value = "Erro para deletar todos os alarmes: ${e.message}"

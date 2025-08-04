@@ -17,6 +17,10 @@ class Repository(private val Configuration_dao : ConfigurationDao){
         return Configuration_dao.getItemById(id)
     }
 
+    suspend fun getItemByName(name: String): Configuration? {
+        return Configuration_dao.getItemByName(name)
+    }
+
     suspend fun deleteAll(){
         Configuration_dao.deleteAll()
     }

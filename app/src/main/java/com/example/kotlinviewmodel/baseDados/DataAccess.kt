@@ -23,4 +23,6 @@ interface ConfigurationDao{
     @Query("SELECT * FROM Configuration WHERE id = :id")
     suspend fun getItemById(id: Int): Configuration?
 
+    @Query("SELECT * FROM Configuration WHERE `Nome do alarme` = :nome")
+    suspend fun getItemByName(nome: String): Configuration?
 }

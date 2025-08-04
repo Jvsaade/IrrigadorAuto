@@ -33,6 +33,11 @@ interface conection {
         @Body alarm: Configuration // Envia o objeto Configuration como corpo da requisição JSON
     ): Response<String>
 
+    @POST("deleteAlarm")
+    suspend fun deleteAlarm(
+        @Query("name") name: String
+    ): Response<String>
+
     @POST("deleteAll") // Deleta todos os alarmes
     suspend fun deleteAll(): Response<String>
 }
