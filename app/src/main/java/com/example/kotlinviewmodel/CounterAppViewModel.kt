@@ -54,6 +54,12 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun marcarAlarmeComoNaoEnviado(alarmId: Int) {
+        _alarmeEnviado.value = _alarmeEnviado.value.toMutableMap().apply {
+            this[alarmId] = false
+        }
+    }
+
     fun alarmeSalvo(alarmId: Int): Boolean {
         return _alarmeEnviado.value[alarmId] ?: false
     }
@@ -169,6 +175,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun loadAlarmForEditing(alarmId: Int) {
+        marcarAlarmeComoNaoEnviado(alarmId)
         viewModelScope.launch {
             val alarm = repository.getItemById(alarmId)
             alarm?.let {
