@@ -89,6 +89,12 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch {
             try {
                 val alarm = repository.getItemById(alarmId)
+                if (alarm?.ativo == true){
+                    IntApi.intService.deactivateAlarm(alarm.nomeAlarme)
+                }
+                else{
+                    IntApi.intService.activateAlarm(alarm!!.nomeAlarme)
+                }
                 alarm?.let {
                     // Atualiza o estado 'ativo' e salva no banco de dados
                     val updatedAlarm = it.copy(ativo = !it.ativo)
@@ -152,6 +158,30 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun editarAlarme(nomeAntigo: String, onCompletion: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val novoAlarme = config.value
+                val response = IntApi.intService.editAlarm(nomeAntigo, novoAlarme)
+                if (response.isSuccessful) {
+                    // Se o microcontrolador responder com sucesso, atualiza o banco de dados local
+                    repository.upsert(novoAlarme)
+                    _statusMessage.value = "Alarme '${novoAlarme.nomeAlarme}' editado com sucesso. Resposta: '${response.body()}'"
+                    onCompletion(true) // Indica sucesso
+                } else {
+                    _statusMessage.value = "Falha ao editar alarme: ${response.message()}"
+                    onCompletion(false) // Indica falha
+                }
+            } catch (e: IOException) {
+                _statusMessage.value = "Erro de conexão ao editar alarme: ${e.message}"
+                onCompletion(false) // Indica falha
+            } catch (e: Exception) {
+                _statusMessage.value = "Erro inesperado ao editar alarme: ${e.message}"
+                onCompletion(false) // Indica falha
+            }
+        }
+    }
+
     fun excluirAlarme(alarm: Configuration) {
         // Se o alarme ainda não tiver sido enviado, deleta na base de dados
         if (!alarmeSalvo(alarm.id)){
@@ -201,7 +231,6 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun loadAlarmForEditing(alarmId: Int) {
-        marcarAlarmeComoNaoEnviado(alarmId)
         viewModelScope.launch {
             val alarm = repository.getItemById(alarmId)
             alarm?.let {

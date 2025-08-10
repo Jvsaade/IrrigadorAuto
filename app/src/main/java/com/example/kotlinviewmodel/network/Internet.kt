@@ -33,8 +33,24 @@ interface conection {
         @Body alarm: Configuration // Envia o objeto Configuration como corpo da requisição JSON
     ): Response<String>
 
+    @POST("editAlarm") // Novo endpoint para enviar JSON (mude o nome se preferir)
+    suspend fun editAlarm(
+        @Query("nomeAntigo") nomeAntigo: String,
+        @Body alarm: Configuration // Envia o objeto Configuration como corpo da requisição JSON
+    ): Response<String>
+
     @POST("deleteAlarm")
     suspend fun deleteAlarm(
+        @Query("name") name: String
+    ): Response<String>
+
+    @POST("activateAlarm")
+    suspend fun activateAlarm(
+        @Query("name") name: String
+    ): Response<String>
+
+    @POST("deactivateAlarm")
+    suspend fun deactivateAlarm(
         @Query("name") name: String
     ): Response<String>
 
