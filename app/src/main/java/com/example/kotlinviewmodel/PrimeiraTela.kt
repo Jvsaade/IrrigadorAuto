@@ -222,10 +222,7 @@ fun AlarmCard(
                     )
                     Switch(
                         checked = alarm.ativo,
-                        onCheckedChange = {
-                            viewModel.toggleAtivo(alarm.id)
-                            viewModel.marcarAlarmeComoNaoEnviado(alarm.id)
-                                          }, // Isso toggles o estado do alarme atualmente no ViewModel.
+                        onCheckedChange = {viewModel.toggleAtivo(alarm.id)}, // Isso toggles o estado do alarme atualmente no ViewModel.
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MaterialTheme.colorScheme.primary,
                             checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,

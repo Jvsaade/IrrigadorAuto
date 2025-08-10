@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.IOException
+import retrofit2.Response
 
 class CounterAppViewModel(private val repository: Repository) : ViewModel() {
 
@@ -89,26 +90,36 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch {
             try {
                 val alarm = repository.getItemById(alarmId)
+
+                // Declara a variável 'response' aqui, fora dos blocos if/else
+                val response: Response<String>
+
                 if (alarm?.ativo == true){
-                    IntApi.intService.deactivateAlarm(alarm.nomeAlarme)
+                    response = IntApi.intService.deactivateAlarm(alarm.nomeAlarme)
                 }
                 else{
-                    IntApi.intService.activateAlarm(alarm!!.nomeAlarme)
+                    response = IntApi.intService.activateAlarm(alarm!!.nomeAlarme)
                 }
-                alarm?.let {
-                    // Atualiza o estado 'ativo' e salva no banco de dados
-                    val updatedAlarm = it.copy(ativo = !it.ativo)
-                    repository.upsert(updatedAlarm)
-                    _statusMessage.value = "Estado do alarme atualizado"
-                } ?: run {
-                    _statusMessage.value = "Alarme não encontrado"
+
+                if(response.isSuccessful){
+                    alarm?.let {
+                        // Atualiza o estado 'ativo' e salva no banco de dados
+                        val updatedAlarm = it.copy(ativo = !it.ativo)
+                        repository.upsert(updatedAlarm)
+                        _statusMessage.value = "Estado do alarme atualizado"
+                    } ?: run {
+                        _statusMessage.value = "Alarme não encontrado"
+                    }
+
+                }
+                else{
+                    _statusMessage.value = "Erro ao atualizar alarme: ${response.message()}"
                 }
             }catch (e: Exception){
                 _statusMessage.value = "Erro ao atualizar alarme: ${e.message}"
             }
         }
     }
-
     fun toggleAtivo(){
         _config.value = _config.value.copy(ativo = !_config.value.ativo)
     }
