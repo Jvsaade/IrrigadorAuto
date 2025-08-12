@@ -24,6 +24,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
             ativo = false,
             horaAlarme = 23,
             minutoAlarme = 59,
+            duracaoAlarme = 0,
             diasSemana = "0000000"
         )
     )
@@ -39,6 +40,10 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
         val dias = _config.value.diasSemana.toCharArray()
         dias[dia] = if (dias[dia] == '1') '0' else '1'
         _config.value = _config.value.copy(diasSemana = String(dias))
+    }
+
+    fun updateDuracao(duracao: Float){
+        _config.value = _config.value.copy(duracao.toInt())
     }
 
     fun updateNome(str: String){
@@ -256,6 +261,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
             ativo = false,
             horaAlarme = 23,
             minutoAlarme = 59,
+            duracaoAlarme = 0,
             diasSemana = "0000000"
         )
     }
