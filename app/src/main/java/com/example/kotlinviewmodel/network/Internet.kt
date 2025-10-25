@@ -10,13 +10,13 @@ import retrofit2.http.Query
 import retrofit2.http.Body // Importar Body
 import com.example.kotlinviewmodel.baseDados.Configuration // Importar a classe Configuration
 
-private const val BASE_URL = "http://irrigador.local" // Certifique-se de que esta é a URL correta do seu microcontrolador
+private const val BASE_URL = "http://meutcc.local" // Certifique-se de que esta é a URL correta do seu microcontrolador
 private const val URL_2 = "http://192.168.18.36" // Esta URL não está sendo usada no construtor Retrofit atualmente
 
 private val inter = Retrofit.Builder()
     .addConverterFactory(ScalarsConverterFactory.create())
     .addConverterFactory(GsonConverterFactory.create()) // Adicionar o conversor Gson
-    .baseUrl(URL_2)
+    .baseUrl(BASE_URL)
     .build()
 
 interface conection {

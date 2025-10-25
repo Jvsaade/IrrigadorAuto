@@ -43,7 +43,7 @@ class CounterAppViewModel(private val repository: Repository) : ViewModel() {
     }
 
     fun updateDuracao(duracao: Float){
-        _config.value = _config.value.copy(duracao.toInt())
+        _config.value = _config.value.copy(duracaoAlarme = duracao.toInt())
     }
 
     fun updateNome(str: String){
