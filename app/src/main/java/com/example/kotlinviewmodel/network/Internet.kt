@@ -56,6 +56,11 @@ interface conection {
 
     @POST("deleteAll") // Deleta todos os alarmes
     suspend fun deleteAll(): Response<String>
+
+    @GET("consultAlarm") // Verifica a existência do alarme
+    suspend fun consultAlarm(
+        @Query("name") nomeAlarme: String
+    ): Response<String>
 }
 
 object IntApi{
