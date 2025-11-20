@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                 val viewModel: CounterAppViewModel = viewModel(
                     factory = CounterAppViewModelFactory(repository)
                 )
-                verificaAlarme(viewModel)
+//                verificaAlarme(viewModel)
                 TelaPrincipal(viewModel)
             }
         }
@@ -71,57 +71,3 @@ class CounterAppViewModelFactory(
     }
 }
 
-fun verificaAlarme(viewModel: CounterAppViewModel){
-    // Usa o escopo do ViewModel para lançar uma coroutine
-    viewModel.viewModelScope.launch {
-        Log.d("VerificaAlarmes", "Iniciando verificação de alarmes no dispositivo...")
-        try {
-            // Pega a lista atual de alarmes do banco de dados
-            val alarmesNoBanco = viewModel.allAlarms.first()
-
-            if (alarmesNoBanco.isEmpty()) {
-                Log.d("VerificaAlarmes", "Nenhum alarme local para verificar.")
-                return@launch
-            }
-
-            // Itera por cada alarme e consulta o dispositivo
-            alarmesNoBanco.forEach { alarme ->
-                try {
-                    val response = IntApi.intService.consultAlarm(alarme.nomeAlarme)
-
-                    if (response.isSuccessful && response.body() != null) {
-                        val existeNoDispositivo = response.body()!!
-                        if (existeNoDispositivo == "True") {
-                            // Se existe, marca como "enviado" (sincronizado)
-                            viewModel.marcarAlarmeComoEnviado(alarme.id)
-                            Log.i("VerificaAlarmes", "Alarme '${alarme.nomeAlarme}' (ID: ${alarme.id}) CONFIRMADO no dispositivo.")
-                        } else {
-                            // Se não existe, marca como "não enviado"
-                            viewModel.marcarAlarmeComoNaoEnviado(alarme.id)
-                            Log.w("VerificaAlarmes", "Alarme '${alarme.nomeAlarme}' (ID: ${alarme.id}) NÃO encontrado no dispositivo.")
-                        }
-                    } else {
-                        // A chamada falhou (erro 404, 500, etc.)
-                        Log.e("VerificaAlarmes", "Erro ao consultar alarme '${alarme.nomeAlarme}': ${response.message()}")
-                        viewModel.marcarAlarmeComoNaoEnviado(alarme.id) // Marca como não enviado por precaução
-                    }
-                } catch (e: IOException) {
-                    // Erro de rede (sem conexão)
-                    Log.e("VerificaAlarmes", "Erro de conexão ao consultar '${alarme.nomeAlarme}': ${e.message}")
-                    // Se não há conexão, não podemos saber o status.
-                    // Vamos manter o status anterior, ou marcar como não enviado.
-                    // Marcar como não enviado parece mais seguro.
-                    viewModel.marcarAlarmeComoNaoEnviado(alarme.id)
-                } catch (e: Exception) {
-                    // Outro erro
-                    Log.e("VerificaAlarmes", "Erro inesperado ao consultar '${alarme.nomeAlarme}': ${e.message}")
-                    viewModel.marcarAlarmeComoNaoEnviado(alarme.id)
-                }
-            }
-            Log.d("VerificaAlarmes", "Verificação de alarmes concluída.")
-        } catch (e: Exception) {
-            // Erro ao tentar pegar a lista de alarmes do banco
-            Log.e("VerificaAlarmes", "Erro crítico ao buscar alarmes do banco de dados: ${e.message}")
-        }
-    }
-}

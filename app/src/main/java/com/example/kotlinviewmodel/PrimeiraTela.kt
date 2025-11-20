@@ -59,6 +59,10 @@ fun FirstScreen(viewModel: CounterAppViewModel, navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     val statusMessage by viewModel.statusMessage
 
+    LaunchedEffect(Unit) {
+        viewModel.verificaAlarme() // Chamada para a nova função no ViewModel
+    }
+
     LaunchedEffect(statusMessage) {
         statusMessage?.let { message ->
             snackbarHostState.showSnackbar(
@@ -246,6 +250,15 @@ fun AlarmCard(
                    ),
                    modifier = Modifier.weight(1f)
                )
+
+                Text(
+                    text = "${alarm.duracaoAlarme} min",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
 
                 Button(onClick = { onEditAlarm(alarm.id) }) {
                     Icon(

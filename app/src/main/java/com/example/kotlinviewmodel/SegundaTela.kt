@@ -163,18 +163,20 @@ fun SecondScreen(viewModel: CounterAppViewModel, navController: NavController, a
             Slider(
                 value = sliderPosition,
                 onValueChange = { newValue ->
+                    // APENAS atualiza o estado local para uma animação fluida
                     sliderPosition = newValue
                 },
                 onValueChangeFinished = {
+                    // ATUALIZA o ViewModel (e o banco de dados ao salvar) quando a interação termina
                     viewModel.updateDuracao(sliderPosition)
                 },
                 valueRange = 0f..30f,
                 steps = 30,
                 modifier = Modifier.width(300.dp),
                 colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary, // Cor da bolinha
-                    activeTrackColor = MaterialTheme.colorScheme.primary, // Cor da trilha preenchida
-                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // Cor da trilha não preenchida
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 )
             )
 
